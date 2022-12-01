@@ -16,7 +16,7 @@ void setup(void)
 
 void loop()
 {
-    if (M5.BtnA.pressedFor(500))
+    if (M5.BtnA.pressedFor(200))
     {
         keyboard.showkeyboard = true;
         M5.Speaker.tone(661, 120);
