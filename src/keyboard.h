@@ -10,10 +10,15 @@ public:
     int rsel = 0;
     int oldcsel = -1;
     int oldrsel = -1;
+    int textLength = 0;
 
-#define KEYSTRING_BUFFER_SIZE (15)
+#define KEYSTRING_BUFFER_SIZE (30)
     char keystring[KEYSTRING_BUFFER_SIZE];
     char oldkeystring[KEYSTRING_BUFFER_SIZE];
+    // Keystring length including string terminator
+#define KEYSTRINGS_BUFFER_SIZE (16)
+    char firstKeystring[KEYSTRINGS_BUFFER_SIZE];
+    char secondKeystring[KEYSTRINGS_BUFFER_SIZE];
 
     void updateKeyboard()
     {
@@ -61,12 +66,25 @@ public:
 
     void updateText()
     {
-        if (showkeyboard && keystring != oldkeystring)
+        if (showkeyboard /* && keystring != oldkeystring */)
         {
-            M5.Lcd.fillRect(0, 48, 320, 30, BLACK); // Default second num 80
+            M5.Lcd.fillRect(0, 48, 320, 30, BLACK); // Clear text
 
-            char *text = keystring;
-            M5.Lcd.drawString(text, 0, 48, 4); // Default second num 80
+            // "Less than or equal to" half the length of the text
+            if (textLength <= 15)
+            {
+                char *firstText = firstKeystring;       // Create pointer to char array "keystring"
+                M5.Lcd.drawString(firstText, 0, 48, 4); // Write new text
+            }
+            else
+            {
+                // int len = strlen(firstKeystring);
+                char *firstText = firstKeystring;
+                M5.Lcd.drawString(firstText, 0, 18, 4);
+
+                char *secondText = secondKeystring;
+                M5.Lcd.drawString(secondText, 0, 48, 4);
+            }
         }
     }
 
@@ -80,9 +98,14 @@ public:
         M5.Lcd.drawString("Vaelg", 143, 215, 2);  // Default first num 80
         M5.Lcd.drawString("Raekke", 245, 215, 2); // Default first num 80
 
-        keystring[0] = '|';
+        // Pre-fill keystrings with null terminator
+        memset(secondKeystring, 0x00, 25);
+        memset(firstKeystring, 0x00, 25);
+
+        // Set cursor and update text and keyboard
+        firstKeystring[0] = '|';
         updateText();
-        keystring[0] = 0;
+        firstKeystring[0] = 0;
         updateKeyboard();
 
         // Keyboard while loop
@@ -109,7 +132,7 @@ public:
 
             if (M5.BtnB.wasPressed())
             {
-                int len = strlen(keystring);
+                // Cursor pipe index
                 int cursorPipe;
 
                 if ((rsel == 2) && (csel == 0))
@@ -119,43 +142,84 @@ public:
                         shift = 0;
                     updateKeyboard();
                 }
+                else if ((rsel == 1) && (csel == 9))
+                {
+                    M5.Lcd.clear();
+                    showkeyboard = false;
+                }
+                else if ((rsel == 2) && (csel == 9))
+                {
+                    if (textLength > 0)
+                    {
+                        // M5.lcd.print(textLength - 1);
+                        cursorPipe = textLength - 1;
+                    }
+                    else
+                    {
+                        cursorPipe = textLength;
+                    }
+                }
                 else
                 {
-                    if ((rsel == 1) && (csel == 9))
+                    if (textLength < 30)
                     {
-                        M5.Lcd.clear();
-                        showkeyboard = false;
-                    }
-                    else if ((rsel == 2) && (csel == 9))
-                    {
-                        if (len > 0)
+                        if (textLength < 15)
                         {
-                            cursorPipe = len - 1;
+                            firstKeystring[strlen(firstKeystring)] = keymap[shift][rsel][csel];
+                            if (textLength == 0 && shift == 1)
+                            {
+                                shift = 0;
+                                updateKeyboard();
+                            }
+                            cursorPipe = textLength + 1;
                         }
                         else
                         {
-                            cursorPipe = len;
+                            secondKeystring[strlen(secondKeystring)] = keymap[shift][rsel][csel];
+                            cursorPipe = textLength + 1;
                         }
                     }
                     else
                     {
-                        keystring[len] = keymap[shift][rsel][csel];
-                        if (len == 0 && shift == 1)
-                        {
-                            shift = 0;
-                            updateKeyboard();
-                        }
-                        cursorPipe = len + 1;
+                        // If textLength is 30
                     }
-                    keystring[cursorPipe] = '|';
-                    updateText();
-                    keystring[cursorPipe] = 0;
+                }
+
+                // This being set here messes up cursorPipe
+                textLength = strlen(firstKeystring) + strlen(secondKeystring);
+                if (textLength < 15)
+                {
+                    if (textLength == 14)
+                    {
+                        updateText();
+                    }
+                    else
+                    {
+                        M5.lcd.print(cursorPipe);
+                        firstKeystring[cursorPipe] = '|';
+                        updateText();
+                        firstKeystring[cursorPipe] = 0;
+                    }
+                }
+                else
+                {
+                    if (textLength == 30)
+                    {
+                        updateText();
+                    }
+                    else
+                    {
+                        secondKeystring[cursorPipe] = '|';
+                        updateText();
+                        secondKeystring[cursorPipe] = 0;
+                    }
                 }
             }
-            strcpy(oldkeystring, keystring);
+            // strcpy(oldkeystring, keystring);
             delay(1);
             M5.update();
         }
+
         return keystring;
     }
 };
