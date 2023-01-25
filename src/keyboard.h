@@ -11,13 +11,9 @@ public:
     int textLength = 0;
 
     // Keeping track of stuff
-    bool showkeyboard = true;
-    bool justStarted = true;
+    bool showkeyboard = false;
     bool pressedShift = false;
     bool deletingSecondKeystring = false;
-
-    // Cursor pipe index
-    int cursorPipe;
 
 #define KEYSTRING_BUFFER_SIZE (31)
     char keystring[KEYSTRING_BUFFER_SIZE];
@@ -41,24 +37,23 @@ public:
         memset(secondKeystring, 0x00, 17);
         memset(firstKeystring, 0x00, 17);
 
+        // During startup, update button-clicks to avoid clicking a button on the keyboard
+        if (!showkeyboard)
+        {
+            delay(1);
+            M5.update();
+            showkeyboard = true;
+        }
+
         // Set cursor and update text and keyboard
         firstKeystring[0] = '|';
         updateText();
-        firstKeystring[0] = 0;
+        firstKeystring[0] = 0x00;
         updateKeyboard();
 
         // Keyboard while loop
         while (showkeyboard)
         {
-            // During startup, update button-clicks to avoid clicking a button on the keyboard
-            if (justStarted)
-            {
-                delay(1);
-                M5.update();
-                cursorPipe = 0;
-                justStarted = false;
-            }
-
             if (M5.BtnA.wasPressed())
             {
                 csel = csel + 1;
@@ -80,6 +75,9 @@ public:
 
             if (M5.BtnB.wasPressed())
             {
+                // Cursor pipe index
+                int cursorPipe;
+
                 if ((rsel == 2) && (csel == 0))
                 {
                     // CAPS LOCK / SHIFT
