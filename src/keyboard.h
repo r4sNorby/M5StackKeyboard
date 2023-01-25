@@ -3,7 +3,6 @@
 class Keyboard
 {
 public:
-    bool showkeyboard = true;
     char keymap[2][4][10] = {{{'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'}, {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', '~'}, {'^', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ' ', '<'}, {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}}, {{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'}, {'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', '~'}, {'^', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ' ', '<'}, {'<', '>', ',', '.', '-', '_', '+', '*', '/', '\\'}}};
     int shift = 1;
     int csel = 0;
@@ -11,6 +10,7 @@ public:
     int oldcsel = -1;
     int oldrsel = -1;
     int textLength = 0;
+    bool showkeyboard = false;
     bool pressedShift = false;
     bool deletingSecondKeystring = false;
 
@@ -41,6 +41,14 @@ public:
         updateText();
         firstKeystring[0] = 0;
         updateKeyboard();
+
+        // During startup, update button-clicks to avoid clicking a button on the keyboard
+        if (!showkeyboard)
+        {
+            delay(1);
+            M5.update();
+            showkeyboard = true;
+        }
 
         // Keyboard while loop
         while (showkeyboard)
@@ -171,7 +179,9 @@ public:
                             firstKeystring[cursorPipe] = 0x00;
                         }
                     }
-                } else {
+                }
+                else
+                {
                     pressedShift = false;
                 }
                 // TextLength is calculated
