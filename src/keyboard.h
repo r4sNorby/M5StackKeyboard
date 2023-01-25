@@ -3,16 +3,21 @@
 class Keyboard
 {
 public:
+    // Keyboard and text-length
     char keymap[2][4][10] = {{{'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'}, {'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', '~'}, {'^', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ' ', '<'}, {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}}, {{'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'}, {'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', '~'}, {'^', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ' ', '<'}, {'<', '>', ',', '.', '-', '_', '+', '*', '/', '\\'}}};
     int shift = 1;
     int csel = 0;
     int rsel = 0;
-    int oldcsel = -1;
-    int oldrsel = -1;
     int textLength = 0;
-    bool showkeyboard = false;
+
+    // Keeping track of stuff
+    bool showkeyboard = true;
+    bool justStarted = true;
     bool pressedShift = false;
     bool deletingSecondKeystring = false;
+
+    // Cursor pipe index
+    int cursorPipe;
 
 #define KEYSTRING_BUFFER_SIZE (31)
     char keystring[KEYSTRING_BUFFER_SIZE];
@@ -42,17 +47,18 @@ public:
         firstKeystring[0] = 0;
         updateKeyboard();
 
-        // During startup, update button-clicks to avoid clicking a button on the keyboard
-        if (!showkeyboard)
-        {
-            delay(1);
-            M5.update();
-            showkeyboard = true;
-        }
-
         // Keyboard while loop
         while (showkeyboard)
         {
+            // During startup, update button-clicks to avoid clicking a button on the keyboard
+            if (justStarted)
+            {
+                delay(1);
+                M5.update();
+                cursorPipe = 0;
+                justStarted = false;
+            }
+
             if (M5.BtnA.wasPressed())
             {
                 csel = csel + 1;
@@ -74,9 +80,6 @@ public:
 
             if (M5.BtnB.wasPressed())
             {
-                // Cursor pipe index
-                int cursorPipe;
-
                 if ((rsel == 2) && (csel == 0))
                 {
                     // CAPS LOCK / SHIFT

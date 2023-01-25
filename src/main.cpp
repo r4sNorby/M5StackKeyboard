@@ -16,7 +16,7 @@ void setup(void)
 
 void loop()
 {
-    if (M5.BtnA.pressedFor(200))
+    if (M5.BtnA.isPressed())
     {
         M5.Speaker.tone(661, 120);
         M5.Lcd.setTextSize(1);
