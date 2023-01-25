@@ -21,7 +21,7 @@ void loop()
         keyboard.showkeyboard = true;
         M5.Speaker.tone(661, 120);
         M5.Lcd.setTextSize(1);
-        const char *s = keyboard.keyboard();
+        const char *s = keyboard.start();
         M5.Speaker.tone(661, 120);
         M5.Lcd.setTextSize(2);
         M5.lcd.print(s);
