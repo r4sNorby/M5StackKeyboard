@@ -18,7 +18,6 @@ void loop()
 {
     if (M5.BtnA.pressedFor(200))
     {
-        keyboard.showkeyboard = true;
         M5.Speaker.tone(661, 120);
         M5.Lcd.setTextSize(1);
         const char *s = keyboard.start();
